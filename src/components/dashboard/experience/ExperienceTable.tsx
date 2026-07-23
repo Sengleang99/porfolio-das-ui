@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button, Badge } from "@/components/ui";
 import type { Experience } from "@/types/experience";
 
@@ -126,15 +127,21 @@ export function ExperienceTable({
   onEdit,
   onDelete,
 }: ExperienceTableProps) {
+  const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({});
+
+  const toggleExpand = (id: string) => {
+    setExpandedIds((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
   return (
     <div className="w-full overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
       <table className="w-full text-left border-collapse text-sm">
         <thead>
           <tr className="border-b border-slate-100 bg-slate-50/75 text-slate-500 font-semibold">
             <th className="p-4 pl-6">Role & Company</th>
-            <th className="p-4">Type</th>
-            <th className="p-4">Duration</th>
-            <th className="p-4">Location</th>
+            <th className="p-4 hidden md:table-cell">Type</th>
+            <th className="p-4 hidden md:table-cell">Duration</th>
+            <th className="p-4 hidden md:table-cell">Location</th>
             <th className="p-4 pr-6 text-right">Actions</th>
           </tr>
         </thead>
@@ -146,28 +153,60 @@ export function ExperienceTable({
             >
               {/* Role & Company */}
               <td className="p-4 pl-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0 mt-0.5">
                     <IconBriefcase />
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <span className="font-semibold text-slate-900 block group-hover:text-indigo-600 transition-colors duration-150">
                       {item.role}
                     </span>
                     <span className="text-xs text-slate-500 block font-medium">
                       {item.company}
                     </span>
+
+                    {/* Mobile-only inline details */}
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1 text-xs text-slate-500 font-medium md:hidden">
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
+                        {item.employmentType}
+                      </span>
+                      <span className="text-slate-300">•</span>
+                      <span className="flex items-center gap-1">
+                        <IconMapPin /> {item.location}
+                      </span>
+                      <span className="text-slate-300">•</span>
+                      <span className="flex items-center gap-1">
+                        <IconCalendar /> {formatDate(item.startDate)} — {formatDate(item.endDate)}
+                      </span>
+                    </div>
+
                     {item.description && (
-                      <p className="text-xs text-slate-400 mt-1 max-w-xs md:max-w-md whitespace-pre-wrap leading-relaxed">
-                        {item.description}
-                      </p>
+                      <div className="text-xs text-slate-400 mt-2 max-w-xs md:max-w-md">
+                        <p className="inline leading-relaxed whitespace-pre-wrap">
+                          {item.description.length > 80 && !expandedIds[item.id]
+                            ? `${item.description.slice(0, 80)}... `
+                            : item.description + " "}
+                        </p>
+                        {item.description.length > 80 && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleExpand(item.id);
+                            }}
+                            className="text-indigo-600 hover:text-indigo-700 font-semibold inline hover:underline ml-1 cursor-pointer focus:outline-none"
+                          >
+                            {expandedIds[item.id] ? "Show less" : "Read more"}
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>
               </td>
 
               {/* Employment Type */}
-              <td className="p-4">
+              <td className="p-4 hidden md:table-cell">
                 <Badge
                   variant={
                     item.employmentType === "Full-time" ? "primary" : "info"
@@ -179,7 +218,7 @@ export function ExperienceTable({
               </td>
 
               {/* Duration */}
-              <td className="p-4">
+              <td className="p-4 hidden md:table-cell">
                 <div className="flex items-center gap-1.5 text-slate-600 font-medium">
                   <IconCalendar />
                   <span className="text-xs">
@@ -189,7 +228,7 @@ export function ExperienceTable({
               </td>
 
               {/* Location */}
-              <td className="p-4">
+              <td className="p-4 hidden md:table-cell">
                 <div className="flex items-center gap-1.5 text-slate-600 font-medium">
                   <IconMapPin />
                   <span className="text-xs">{item.location}</span>
