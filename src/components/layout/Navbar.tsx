@@ -2,9 +2,11 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { getPageInfo } from "@/lib/routes";
 import { useSidebar } from "@/context/SidebarContext";
+import { logoutAction } from "@/app/(auth)/login/actions";
+
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 const IconSearch = () => (
@@ -145,10 +147,16 @@ const notifications = [
 // ─── Navbar Component ─────────────────────────────────────────────────────────
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { toggle } = useSidebar();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
+
+  const handleSignOut = async () => {
+    await logoutAction();
+    router.push("/login");
+  };
 
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -386,7 +394,10 @@ export default function Navbar() {
               </div>
 
               <div className="border-t border-slate-100 py-1.5 px-2">
-                <button className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors duration-150">
+                <button
+                  onClick={handleSignOut}
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors duration-150"
+                >
                   <IconLogOut />
                   Sign out
                 </button>

@@ -6,7 +6,11 @@ export function mapStatusCodeToException(
   statusCode: number,
   statusText?: string,
 ): Error {
-  let message = statusText || `HTTP Error ${statusCode}`;
+  if (statusText) {
+    return new Error(statusText);
+  }
+
+  let message = `HTTP Error ${statusCode}`;
 
   switch (statusCode) {
     case 400:

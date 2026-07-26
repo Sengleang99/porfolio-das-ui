@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Input, Card, Alert } from "@/components/ui";
+import { loginAction } from "./actions";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 const IconLogo = () => (
@@ -93,9 +94,14 @@ export default function SignInPage() {
       return;
     }
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1200));
+    const result = await loginAction({ email, password });
     setLoading(false);
-    router.push("/dashboard");
+
+    if (result.error) {
+      setError(result.error);
+    } else {
+      router.push("/dashboard");
+    }
   };
 
   return (

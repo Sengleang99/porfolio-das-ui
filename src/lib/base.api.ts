@@ -9,12 +9,31 @@ const buildJsonHeaders = async (includeToken: boolean): Promise<Headers> => {
     "Content-Type": "application/json",
   });
 
+  if (process.env.X_API_KEY) {
+    reqHeaders.set("x-api-key", process.env.X_API_KEY);
+  }
+
   if (includeToken) {
     const token = await getUserToken();
     if (token) reqHeaders.set("Authorization", `Bearer ${token}`);
   }
 
   return reqHeaders;
+};
+
+const handleResponseError = async (response: Response): Promise<never> => {
+  let errorMessage = response.statusText;
+  try {
+    const errorJson = await response.json();
+    if (errorJson && errorJson.message) {
+      errorMessage = Array.isArray(errorJson.message)
+        ? errorJson.message.join(", ")
+        : errorJson.message;
+    }
+  } catch {
+    // Ignore JSON parsing errors
+  }
+  throw mapStatusCodeToException(response.status, errorMessage);
 };
 
 const fetcher = async <T>(
@@ -29,7 +48,7 @@ const fetcher = async <T>(
   });
 
   if (!response.ok) {
-    throw mapStatusCodeToException(response.status, response.statusText);
+    await handleResponseError(response);
   }
 
   const json: ApiResponse<T> = await response.json();
@@ -42,14 +61,14 @@ const poster = async <T>(
   includeToken: boolean = true,
 ): Promise<ApiResponse<T>> => {
   const reqHeaders = await buildJsonHeaders(includeToken);
-  const response = await fetch(`$process.env.BACKEND_API_BASE_URL}${path}`, {
+  const response = await fetch(`${process.env.BACKEND_API_BASE_URL}${path}`, {
     method: "POST",
     headers: reqHeaders,
     body: JSON.stringify(body),
   });
 
   if (!response.ok) {
-    throw mapStatusCodeToException(response.status, response.statusText);
+    await handleResponseError(response);
   }
 
   const json: ApiResponse<T> = await response.json();
@@ -69,7 +88,7 @@ const updater = async <T>(
   });
 
   if (!response.ok) {
-    throw mapStatusCodeToException(response.status);
+    await handleResponseError(response);
   }
 
   const json: ApiResponse<T> = await response.json();
@@ -87,7 +106,7 @@ const deleter = async <T>(
   });
 
   if (!response.ok) {
-    throw mapStatusCodeToException(response.status);
+    await handleResponseError(response);
   }
 
   const json: ApiResponse<T> = await response.json();
