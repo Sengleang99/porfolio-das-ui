@@ -9,3 +9,4 @@ export { Card, CardHeader, CardDivider, CardFooter } from "./Card";
 export { Badge } from "./Badge";
 export { Avatar, Divider, Spinner, Alert } from "./shared";
 export { Modal } from "./Modal";
+export { MultiSelect } from "./MultiSelect";

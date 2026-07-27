@@ -1,6 +1,5 @@
 import { Button, Card, Badge } from "@/components/ui";
 import type { CaseStudy } from "@/types/caseStudy";
-import { STATUS_LABELS, STATUS_BADGE } from "./constants";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 const IconExternal = () => (
@@ -25,6 +24,38 @@ const IconGithub = () => (
   </svg>
 );
 
+const IconEdit = () => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="w-4 h-4"
+  >
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+    <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+  </svg>
+);
+
+const IconDelete = () => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="w-4 h-4"
+  >
+    <polyline points="3 6 5 6 21 6" />
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+    <line x1="10" y1="11" x2="10" y2="17" />
+    <line x1="14" y1="11" x2="14" y2="17" />
+  </svg>
+);
+
 // ─── Props ────────────────────────────────────────────────────────────────────
 interface CaseStudyCardProps {
   project: CaseStudy;
@@ -38,6 +69,14 @@ export function CaseStudyCard({
   onEdit,
   onDelete,
 }: CaseStudyCardProps) {
+  const formattedDate = project.createdAt
+    ? new Date(project.createdAt).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      })
+    : "";
+
   return (
     <Card
       padding="none"
@@ -45,17 +84,13 @@ export function CaseStudyCard({
     >
       {/* Body */}
       <div className="p-5 flex-1 space-y-3">
-        {/* Title + status */}
+        {/* Title + Tag */}
         <div className="flex items-start justify-between gap-3">
           <h3 className="font-semibold text-slate-800 leading-snug">
             {project.title}
           </h3>
-          <Badge
-            variant={STATUS_BADGE[project.status]}
-            size="sm"
-            className="shrink-0"
-          >
-            {STATUS_LABELS[project.status]}
+          <Badge variant="primary" size="sm" className="shrink-0">
+            {project.tag}
           </Badge>
         </div>
 
@@ -66,37 +101,37 @@ export function CaseStudyCard({
 
         {/* Tech stack pills */}
         <div className="flex flex-wrap gap-1.5">
-          {project.techStack.split(",").map((tech) => (
+          {(project.tech || []).map((techItem, index) => (
             <span
-              key={tech.trim()}
+              key={`${techItem.trim()}-${index}`}
               className="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-[11px] font-medium border border-indigo-100"
             >
-              {tech.trim()}
+              {techItem.trim()}
             </span>
           ))}
         </div>
 
         {/* External links */}
-        {(project.liveUrl || project.repoUrl) && (
+        {(project.demoUrl || project.githubUrl) && (
           <div className="flex items-center gap-3">
-            {project.liveUrl && (
+            {project.demoUrl && (
               <a
-                href={project.liveUrl}
+                href={project.demoUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs text-indigo-600 hover:underline flex items-center gap-1"
               >
-                <IconExternal /> Live
+                <IconExternal /> Live Demo
               </a>
             )}
-            {project.repoUrl && (
+            {project.githubUrl && (
               <a
-                href={project.repoUrl}
+                href={project.githubUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1"
               >
-                <IconGithub /> Repo
+                <IconGithub /> GitHub
               </a>
             )}
           </div>
@@ -105,18 +140,25 @@ export function CaseStudyCard({
 
       {/* Footer */}
       <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-between bg-slate-50/60 rounded-b-2xl">
-        <span className="text-xs text-slate-400">{project.createdAt}</span>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={() => onEdit(project)}>
-            Edit
+        <span className="text-xs text-slate-400">{formattedDate}</span>
+        <div className="flex items-center gap-1.5">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center"
+            onClick={() => onEdit(project)}
+            title="Edit Project"
+          >
+            <IconEdit />
           </Button>
           <Button
             variant="ghost"
             size="sm"
-            className="text-red-500 hover:text-red-600 hover:bg-red-50"
+            className="h-8 w-8 p-0 rounded-lg text-red-500 hover:text-red-600 hover:bg-red-50 flex items-center justify-center"
             onClick={() => onDelete(project)}
+            title="Delete Project"
           >
-            Delete
+            <IconDelete />
           </Button>
         </div>
       </div>

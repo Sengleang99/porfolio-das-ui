@@ -1,5 +1,5 @@
-import { Input } from "@/components/ui";
-import type { FormData } from "./constants";
+import { Input, MultiSelect } from "@/components/ui";
+import { type FormData, TECH_OPTIONS } from "./constants";
 
 interface CaseStudyFormProps {
   data: FormData;
@@ -17,6 +17,15 @@ export function CaseStudyForm({ data, onChange, errors }: CaseStudyFormProps) {
         value={data.title}
         onChange={(e) => onChange("title", e.target.value)}
         error={errors.title}
+      />
+
+      <Input
+        id="cs-tag"
+        label="Tag / Category"
+        placeholder="e.g. E-Commerce, Web App, AI, Mobile"
+        value={data.tag}
+        onChange={(e) => onChange("tag", e.target.value)}
+        error={errors.tag}
       />
 
       {/* Description textarea */}
@@ -46,53 +55,35 @@ export function CaseStudyForm({ data, onChange, errors }: CaseStudyFormProps) {
         )}
       </div>
 
-      <Input
+      <MultiSelect
         id="cs-tech"
         label="Tech Stack"
-        placeholder="e.g. React, Node.js, PostgreSQL"
-        value={data.techStack}
-        onChange={(e) => onChange("techStack", e.target.value)}
-        error={errors.techStack}
-        hint="Comma-separated list of technologies"
+        placeholder="Select technologies..."
+        value={data.tech}
+        onChange={(value) => onChange("tech", value)}
+        options={TECH_OPTIONS}
+        error={errors.tech}
       />
 
       <div className="grid grid-cols-2 gap-3">
         <Input
-          id="cs-live"
-          label="Live URL"
+          id="cs-demo"
+          label="Demo URL"
           type="url"
           placeholder="https://..."
-          value={data.liveUrl ?? ""}
-          onChange={(e) => onChange("liveUrl", e.target.value)}
+          value={data.demoUrl}
+          onChange={(e) => onChange("demoUrl", e.target.value)}
+          error={errors.demoUrl}
         />
         <Input
-          id="cs-repo"
-          label="Repository URL"
+          id="cs-github"
+          label="GitHub URL"
           type="url"
           placeholder="https://github.com/..."
-          value={data.repoUrl ?? ""}
-          onChange={(e) => onChange("repoUrl", e.target.value)}
+          value={data.githubUrl}
+          onChange={(e) => onChange("githubUrl", e.target.value)}
+          error={errors.githubUrl}
         />
-      </div>
-
-      {/* Status select */}
-      <div className="space-y-1.5">
-        <label
-          htmlFor="cs-status"
-          className="block text-sm font-medium text-slate-700"
-        >
-          Status
-        </label>
-        <select
-          id="cs-status"
-          value={data.status}
-          onChange={(e) => onChange("status", e.target.value)}
-          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white outline-none transition-all duration-200 hover:border-slate-300 focus:border-indigo-400 focus:ring-3 focus:ring-indigo-100"
-        >
-          <option value="planned">Planned</option>
-          <option value="in-progress">In Progress</option>
-          <option value="completed">Completed</option>
-        </select>
       </div>
     </div>
   );
