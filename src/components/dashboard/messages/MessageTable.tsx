@@ -90,7 +90,7 @@ export function MessageTable({ items, onView, onDelete }: MessageTableProps) {
         <thead>
           <tr className="border-b border-slate-100 bg-slate-50/75 text-slate-500 font-semibold">
             <th className="p-4 pl-6 w-[220px]">Sender</th>
-            <th className="p-4">Subject & Message Preview</th>
+            <th className="p-4">Message Preview</th>
             <th className="p-4 w-[130px]">Received</th>
             <th className="p-4 w-[110px]">Status</th>
             <th className="p-4 pr-6 w-[100px] text-right">Actions</th>
@@ -129,15 +129,10 @@ export function MessageTable({ items, onView, onDelete }: MessageTableProps) {
                   </div>
                 </td>
 
-                {/* Subject & Preview */}
+                {/* Message Preview */}
                 <td className="p-4">
                   <div className="min-w-0">
-                    <span
-                      className={`block truncate ${isUnread ? "text-slate-900 font-semibold" : "text-slate-700"}`}
-                    >
-                      {item.subject}
-                    </span>
-                    <span className="block truncate text-xs text-slate-400 mt-0.5 max-w-xs md:max-w-md">
+                    <span className="block truncate text-xs text-slate-450 text-slate-400 max-w-xs md:max-w-md">
                       {item.message}
                     </span>
                   </div>

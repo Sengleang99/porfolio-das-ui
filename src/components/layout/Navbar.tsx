@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { getPageInfo } from "@/lib/routes";
 import { useSidebar } from "@/context/SidebarContext";
 import { logoutAction } from "@/app/(auth)/login/actions";
+import { useMessages } from "@/context/MessagesContext";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 const IconSearch = () => (
@@ -148,6 +149,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { toggle } = useSidebar();
+  const { unreadCount } = useMessages();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
@@ -161,7 +163,7 @@ export default function Navbar() {
   const profileRef = useRef<HTMLDivElement>(null);
 
   const pageInfo = getPageInfo(pathname);
-  const unreadCount = notifications.filter((n) => n.unread).length;
+  const mockNotifUnreadCount = notifications.filter((n) => n.unread).length;
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -248,7 +250,11 @@ export default function Navbar() {
           className="relative flex items-center justify-center w-9 h-9 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition-all duration-200"
         >
           <IconMessage />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-indigo-500 ring-2 ring-white" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-4 px-1 rounded-full bg-indigo-600 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white">
+              {unreadCount}
+            </span>
+          )}
         </Link>
 
         {/* Notifications dropdown */}
@@ -266,9 +272,9 @@ export default function Navbar() {
             }`}
           >
             <IconBell />
-            {unreadCount > 0 && (
+            {mockNotifUnreadCount > 0 && (
               <span className="absolute top-1.5 right-1.5 min-w-[16px] h-4 px-0.5 rounded-full bg-indigo-600 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white">
-                {unreadCount}
+                {mockNotifUnreadCount}
               </span>
             )}
           </button>

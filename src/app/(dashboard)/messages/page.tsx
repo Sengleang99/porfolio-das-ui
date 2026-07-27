@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Alert, Card, Input } from "@/components/ui";
+import { useState, useEffect } from "react";
+import { Alert, Card, Input, Spinner } from "@/components/ui";
 import type { Message } from "@/types/message";
 
 import { MessageTable } from "@/components/dashboard/messages/MessageTable";
@@ -9,53 +9,112 @@ import {
   MessageViewModal,
   DeleteModal,
 } from "@/components/dashboard/messages/MessageModals";
-import { SEED_DATA } from "@/components/dashboard/messages/constants";
+import {
+  getMessages,
+  deleteMessage,
+  updateMessageStatus,
+  replyToMessage,
+} from "./actions";
+import { useMessages } from "@/context/MessagesContext";
 
 export default function MessagesPage() {
-  const [messages, setMessages] = useState<Message[]>(SEED_DATA);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "unread" | "read">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Message | null>(null);
   const [successMsg, setSuccessMsg] = useState("");
+  const { triggerRefresh } = useMessages();
 
   // ── Helpers ──────────────────────────────────────────────────────────────
   const flash = (msg: string) => {
     setSuccessMsg(msg);
-    setTimeout(() => setSuccessMsg(""), 3000);
+    setTimeout(() => setSuccessMsg(""), 4000);
   };
 
+  useEffect(() => {
+    async function loadData() {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const data = await getMessages();
+        setMessages(data);
+      } catch (err: any) {
+        setError(err?.message || "Failed to load messages");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  useEffect(() => {
+    const handleNewMessage = async () => {
+      const updatedMessages = await getMessages();
+      setMessages(updatedMessages);
+      flash("New message received!");
+    };
+
+    window.addEventListener("new-message-event", handleNewMessage);
+    return () => {
+      window.removeEventListener("new-message-event", handleNewMessage);
+    };
+  }, []);
+
   // ── Open View & Mark as Read ─────────────────────────────────────────────
-  const handleViewMessage = (msg: Message) => {
+  const handleViewMessage = async (msg: Message) => {
     setSelectedMessage(msg);
     if (msg.status === "unread") {
       setMessages((prev) =>
         prev.map((m) => (m.id === msg.id ? { ...m, status: "read" } : m)),
       );
+      await updateMessageStatus(msg.id, "read");
+      triggerRefresh();
     }
   };
 
   // ── Send Reply ───────────────────────────────────────────────────────────
-  const handleReplySent = (messageId: string, replyBody: string) => {
+  const handleReplySent = async (messageId: string, replyBody: string) => {
     const originalMsg = messages.find((m) => m.id === messageId);
-    if (originalMsg) {
+    if (!originalMsg) {
+      return { success: false, error: "Original message not found." };
+    }
+
+    const result = await replyToMessage(messageId, replyBody);
+    if (result.success && result.data) {
       flash(
         `Reply sent to ${originalMsg.name} (${originalMsg.email}) successfully.`,
       );
-      console.log("Simulating reply body:", replyBody);
+      const updatedMessage = result.data;
+      setMessages((prev) =>
+        prev.map((m) => (m.id === messageId ? updatedMessage : m)),
+      );
+      setSelectedMessage(updatedMessage);
+      triggerRefresh();
+      return { success: true };
+    } else {
+      return { success: false, error: result.error || "Failed to send reply." };
     }
-    setSelectedMessage(null);
   };
 
   // ── Delete Message ────────────────────────────────────────────────────────
-  const handleDeleteMessage = () => {
+  const handleDeleteMessage = async () => {
     if (!deleteTarget) return;
-    setMessages((prev) => prev.filter((m) => m.id !== deleteTarget.id));
-    setDeleteTarget(null);
-    if (selectedMessage?.id === deleteTarget.id) {
-      setSelectedMessage(null);
+
+    const result = await deleteMessage(deleteTarget.id);
+    if (result.success) {
+      setMessages((prev) => prev.filter((m) => m.id !== deleteTarget.id));
+      if (selectedMessage?.id === deleteTarget.id) {
+        setSelectedMessage(null);
+      }
+      flash("Message deleted successfully.");
+      triggerRefresh();
+    } else {
+      flash(result.error || "Failed to delete message.");
     }
-    flash("Message deleted successfully.");
+    setDeleteTarget(null);
   };
 
   // ── Stats ─────────────────────────────────────────────────────────────────
@@ -75,7 +134,6 @@ export default function MessagesPage() {
       return (
         m.name.toLowerCase().includes(q) ||
         m.email.toLowerCase().includes(q) ||
-        m.subject.toLowerCase().includes(q) ||
         m.message.toLowerCase().includes(q)
       );
     });
@@ -190,7 +248,7 @@ export default function MessagesPage() {
           <Input
             id="message-search"
             type="search"
-            placeholder="Search sender, email or subject..."
+            placeholder="Search sender, email or message..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="rounded-xl py-2 px-3 border border-slate-200 focus:border-indigo-400 focus:ring-3 focus:ring-indigo-100 text-sm w-full"
@@ -212,8 +270,19 @@ export default function MessagesPage() {
         </div>
       </div>
 
-      {/* Message List Table */}
-      {filteredMessages.length === 0 ? (
+      {/* Loading state, Error state, Empty state or Message List Table */}
+      {isLoading ? (
+        <Card className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="flex flex-col items-center gap-2">
+            <Spinner size="lg" />
+            <p className="text-sm font-medium text-slate-500 mt-2">
+              Loading messages...
+            </p>
+          </div>
+        </Card>
+      ) : error ? (
+        <Alert variant="error">{error}</Alert>
+      ) : filteredMessages.length === 0 ? (
         <Card className="flex flex-col items-center justify-center py-16 text-center">
           <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center mb-4">
             <svg
@@ -258,7 +327,7 @@ export default function MessagesPage() {
         open={deleteTarget !== null}
         title={
           deleteTarget
-            ? `${deleteTarget.subject} from ${deleteTarget.name}`
+            ? `Delete message from ${deleteTarget.name}`
             : ""
         }
         onClose={() => setDeleteTarget(null)}

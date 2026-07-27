@@ -5,10 +5,12 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { mainNavItems, bottomNavItems } from "@/lib/routes";
 import { useSidebar } from "@/context/SidebarContext";
+import { useMessages } from "@/context/MessagesContext";
 
 // ─── Inner nav content (shared between desktop & mobile) ──────────────────────
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const { unreadCount } = useMessages();
 
   return (
     <>
@@ -29,6 +31,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         {mainNavItems.map((item) => {
           const isActive =
             pathname === item.href || pathname.startsWith(item.href + "/");
+          const badgeCount = item.href === "/messages" ? unreadCount : (item.badge ?? 0);
 
           return (
             <Link
@@ -50,9 +53,9 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                 <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full bg-indigo-600" />
               )}
               <span>{item.label}</span>
-              {(item.badge ?? 0) > 0 && (
+              {badgeCount > 0 && (
                 <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold rounded-full bg-indigo-600 text-white">
-                  {item.badge}
+                  {badgeCount}
                 </span>
               )}
             </Link>

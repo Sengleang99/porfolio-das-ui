@@ -6,7 +6,10 @@ import type { Message } from "@/types/message";
 interface MessageViewModalProps {
   message: Message | null;
   onClose: () => void;
-  onReplySent: (messageId: string, replyBody: string) => void;
+  onReplySent: (
+    messageId: string,
+    replyBody: string,
+  ) => Promise<{ success: boolean; error?: string }>;
 }
 
 export function MessageViewModal({
@@ -21,20 +24,26 @@ export function MessageViewModal({
 
   if (!message) return null;
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!replyBody.trim()) {
       setReplyError("Reply message cannot be empty.");
       return;
     }
     setReplyError("");
     setIsSending(true);
-    // Simulate API delay
-    setTimeout(() => {
-      onReplySent(message.id, replyBody);
+    try {
+      const result = await onReplySent(message.id, replyBody);
+      if (result.success) {
+        setReplyBody("");
+        setShowReplyForm(false);
+      } else {
+        setReplyError(result.error || "Failed to send reply.");
+      }
+    } catch (err: any) {
+      setReplyError(err?.message || "An unexpected error occurred.");
+    } finally {
       setIsSending(false);
-      setReplyBody("");
-      setShowReplyForm(false);
-    }, 1000);
+    }
   };
 
   const formatDate = (dateStr: string) => {
@@ -51,7 +60,7 @@ export function MessageViewModal({
     <Modal
       open={message !== null}
       onClose={onClose}
-      title={message.subject}
+      title={`Message from ${message.name}`}
       size="lg"
       footer={
         <div className="flex w-full items-center justify-between">
@@ -100,9 +109,33 @@ export function MessageViewModal({
         </div>
 
         {/* Message Body */}
-        <div className="p-4 bg-white border border-slate-200 rounded-xl max-h-60 overflow-y-auto whitespace-pre-wrap text-sm text-slate-700 leading-relaxed">
+        <div className="p-4 bg-white border border-slate-200 rounded-xl max-h-40 overflow-y-auto whitespace-pre-wrap text-sm text-slate-700 leading-relaxed">
           {message.message}
         </div>
+
+        {/* Replies Timeline */}
+        {message.replies && message.replies.length > 0 && (
+          <div className="space-y-3 pt-4 border-t border-slate-100">
+            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+              Reply History
+            </h4>
+            <div className="space-y-3 max-h-48 overflow-y-auto pr-1">
+              {message.replies.map((reply, index) => (
+                <div key={index} className="bg-indigo-50/50 border border-indigo-100/50 p-3 rounded-xl space-y-1">
+                  <div className="flex items-center justify-between text-xs text-indigo-600 font-semibold">
+                    <span>You (Admin)</span>
+                    <span className="text-[10px] text-slate-400 font-normal">
+                      {formatDate(reply.createdAt)}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">
+                    {reply.message}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Expandable Reply Form */}
         {showReplyForm && (
@@ -118,14 +151,7 @@ export function MessageViewModal({
                 {message.name} &lt;{message.email}&gt;
               </div>
             </div>
-            <div className="space-y-1">
-              <label className="block text-xs font-semibold text-slate-400">
-                Subject:
-              </label>
-              <div className="px-3.5 py-2 rounded-lg bg-slate-50 text-sm text-slate-500 border border-slate-100 select-none">
-                Re: {message.subject}
-              </div>
-            </div>
+            {/* Subject field removed */}
             <div className="space-y-1.5">
               <label
                 htmlFor="reply-body"
