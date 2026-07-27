@@ -7,7 +7,6 @@ import { getPageInfo } from "@/lib/routes";
 import { useSidebar } from "@/context/SidebarContext";
 import { logoutAction } from "@/app/(auth)/login/actions";
 
-
 // ─── Icons ────────────────────────────────────────────────────────────────────
 const IconSearch = () => (
   <svg

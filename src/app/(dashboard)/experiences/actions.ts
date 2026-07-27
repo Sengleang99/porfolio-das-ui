@@ -32,9 +32,11 @@ export interface ActionResult<T> {
   error?: string;
 }
 
-export async function createExperience(data: FormData): Promise<ActionResult<Experience>> {
+export async function createExperience(
+  data: FormData,
+): Promise<ActionResult<Experience>> {
   try {
-    const response = await poster<any>("/experiences", data);
+    const response = await poster<Experience>("/experiences", data);
 
     // Support both wrapped and unwrapped NestJS API responses
     const rawExperience = response?.data || response;
@@ -55,33 +57,46 @@ export async function createExperience(data: FormData): Promise<ActionResult<Exp
     return {
       success: true,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error in createExperience server action:", error);
+    const message =
+      error instanceof Error
+        ? error.message
+        : "An unexpected error occurred while creating experience.";
     return {
       success: false,
-      error: error?.message || "An unexpected error occurred while creating experience.",
+      error: message,
     };
   }
 }
 
-export async function deleteExperience(id: string): Promise<ActionResult<void>> {
+export async function deleteExperience(
+  id: string,
+): Promise<ActionResult<void>> {
   try {
     await deleter<void>(`/experiences/${id}`);
     return {
       success: true,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error in deleteExperience server action:", error);
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Failed to delete experience record.";
     return {
       success: false,
-      error: error?.message || "Failed to delete experience record.",
+      error: message,
     };
   }
 }
 
-export async function updateExperience(id: string, data: FormData): Promise<ActionResult<Experience>> {
+export async function updateExperience(
+  id: string,
+  data: FormData,
+): Promise<ActionResult<Experience>> {
   try {
-    const response = await updater<any>(`/experiences/${id}`, data);
+    const response = await updater<Experience>(`/experiences/${id}`, data);
 
     // Support both wrapped and unwrapped NestJS API responses
     const rawExperience = response?.data || response;
@@ -100,11 +115,15 @@ export async function updateExperience(id: string, data: FormData): Promise<Acti
     return {
       success: true,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error in updateExperience server action:", error);
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Failed to update experience record.";
     return {
       success: false,
-      error: error?.message || "Failed to update experience record.",
+      error: message,
     };
   }
 }

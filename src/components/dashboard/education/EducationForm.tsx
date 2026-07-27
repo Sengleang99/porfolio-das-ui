@@ -8,13 +8,13 @@ interface EducationFormProps {
 }
 
 export function EducationForm({ data, onChange, errors }: EducationFormProps) {
-  const isPresent = data.endDate === "Present";
+  const isPresent = data.end_year === "Present";
 
   const handlePresentChange = (checked: boolean) => {
     if (checked) {
-      onChange("endDate", "Present");
+      onChange("end_year", "Present");
     } else {
-      onChange("endDate", "");
+      onChange("end_year", "");
     }
   };
 
@@ -24,9 +24,9 @@ export function EducationForm({ data, onChange, errors }: EducationFormProps) {
         id="edu-institution"
         label="Institution / School"
         placeholder="e.g. Stanford University"
-        value={data.institution}
-        onChange={(e) => onChange("institution", e.target.value)}
-        error={errors.institution}
+        value={data.university}
+        onChange={(e) => onChange("university", e.target.value)}
+        error={errors.university}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -43,9 +43,9 @@ export function EducationForm({ data, onChange, errors }: EducationFormProps) {
           id="edu-field"
           label="Field of Study"
           placeholder="e.g. Computer Science"
-          value={data.fieldOfStudy}
-          onChange={(e) => onChange("fieldOfStudy", e.target.value)}
-          error={errors.fieldOfStudy}
+          value={data.major}
+          onChange={(e) => onChange("major", e.target.value)}
+          error={errors.major}
         />
       </div>
 
@@ -54,9 +54,9 @@ export function EducationForm({ data, onChange, errors }: EducationFormProps) {
           id="edu-start"
           label="Start Date"
           type="month"
-          value={data.startDate}
-          onChange={(e) => onChange("startDate", e.target.value)}
-          error={errors.startDate}
+          value={data.start_year}
+          onChange={(e) => onChange("start_year", e.target.value)}
+          error={errors.start_year}
         />
 
         <div className="space-y-1.5">
@@ -64,10 +64,10 @@ export function EducationForm({ data, onChange, errors }: EducationFormProps) {
             id="edu-end"
             label="End Date"
             type="month"
-            value={isPresent ? "" : data.endDate}
-            onChange={(e) => onChange("endDate", e.target.value)}
+            value={isPresent ? "" : data.end_year}
+            onChange={(e) => onChange("end_year", e.target.value)}
             disabled={isPresent}
-            error={errors.endDate}
+            error={errors.end_year}
           />
           <label className="flex items-center gap-2 mt-1.5 cursor-pointer text-xs text-slate-600 select-none">
             <input
@@ -81,15 +81,6 @@ export function EducationForm({ data, onChange, errors }: EducationFormProps) {
         </div>
       </div>
 
-      <Input
-        id="edu-grade"
-        label="Grade / GPA (Optional)"
-        placeholder="e.g. GPA: 3.8 / 4.0 or Grade: Distinction"
-        value={data.grade ?? ""}
-        onChange={(e) => onChange("grade", e.target.value)}
-        error={errors.grade}
-      />
-
       <div className="space-y-1.5">
         <label
           htmlFor="edu-desc"
@@ -101,19 +92,17 @@ export function EducationForm({ data, onChange, errors }: EducationFormProps) {
           id="edu-desc"
           rows={3}
           placeholder="Describe relevant courses, activities, achievements, or research…"
-          value={data.description ?? ""}
-          onChange={(e) => onChange("description", e.target.value)}
+          value={data.descr ?? ""}
+          onChange={(e) => onChange("descr", e.target.value)}
           className={`
             w-full px-3.5 py-2.5 rounded-xl border text-sm text-slate-800
             placeholder-slate-400 bg-white outline-none resize-none
             transition-all duration-200 hover:border-slate-300
             focus:border-indigo-400 focus:ring-3 focus:ring-indigo-100
-            ${errors.description ? "border-red-400" : "border-slate-200"}
+            ${errors.descr ? "border-red-400" : "border-slate-200"}
           `}
         />
-        {errors.description && (
-          <p className="text-xs text-red-500">{errors.description}</p>
-        )}
+        {errors.descr && <p className="text-xs text-red-500">{errors.descr}</p>}
       </div>
     </div>
   );

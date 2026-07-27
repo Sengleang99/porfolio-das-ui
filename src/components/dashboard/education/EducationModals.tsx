@@ -10,6 +10,7 @@ interface EducationModalProps {
   onClose: () => void;
   onSave: () => void;
   onFieldChange: (field: keyof FormData, value: string) => void;
+  isSaving?: boolean;
 }
 
 export function EducationModal({
@@ -19,6 +20,7 @@ export function EducationModal({
   onClose,
   onSave,
   onFieldChange,
+  isSaving = false,
 }: EducationModalProps) {
   return (
     <Modal
@@ -33,10 +35,10 @@ export function EducationModal({
       size="lg"
       footer={
         <>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} disabled={isSaving}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={onSave}>
+          <Button variant="primary" onClick={onSave} loading={isSaving}>
             {mode === "create" ? "Create Record" : "Save Changes"}
           </Button>
         </>

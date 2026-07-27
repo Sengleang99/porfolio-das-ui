@@ -53,11 +53,14 @@ const refreshTokens = async (): Promise<string | null> => {
     }
     reqHeaders.set("Authorization", `Bearer ${refreshToken}`);
 
-    const response = await fetch(`${process.env.BACKEND_API_BASE_URL}/auth/refresh`, {
-      method: "POST",
-      headers: reqHeaders,
-      body: JSON.stringify({ refreshToken }),
-    });
+    const response = await fetch(
+      `${process.env.BACKEND_API_BASE_URL}/auth/refresh`,
+      {
+        method: "POST",
+        headers: reqHeaders,
+        body: JSON.stringify({ refreshToken }),
+      },
+    );
 
     if (!response.ok) {
       cookieStore.delete("token");
@@ -65,8 +68,18 @@ const refreshTokens = async (): Promise<string | null> => {
       return null;
     }
 
-    const json: ApiResponse<{ accessToken?: string; token?: string; refreshToken?: string }> = await response.json();
-    const rawData = json.data || (json as any);
+    const json: ApiResponse<{
+      accessToken?: string;
+      token?: string;
+      refreshToken?: string;
+    }> = await response.json();
+    const rawData =
+      json.data ||
+      (json as unknown as {
+        accessToken?: string;
+        token?: string;
+        refreshToken?: string;
+      });
     const newAccessToken = rawData?.accessToken || rawData?.token;
     const newRefreshToken = rawData?.refreshToken;
 

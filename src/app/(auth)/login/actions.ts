@@ -8,7 +8,9 @@ interface LoginResult {
   error?: string;
 }
 
-export async function loginAction(credentials: Record<string, string>): Promise<LoginResult> {
+export async function loginAction(
+  credentials: Record<string, string>,
+): Promise<LoginResult> {
   const { email, password } = credentials;
 
   if (!email || !password) {
@@ -16,13 +18,16 @@ export async function loginAction(credentials: Record<string, string>): Promise<
   }
 
   try {
-    const response = await poster<{ accessToken?: string; token?: string; refreshToken?: string }>(
-      "/auth/signin",
-      { email, password },
-      false
-    );
+    const response = await poster<{
+      accessToken?: string;
+      token?: string;
+      refreshToken?: string;
+    }>("/auth/signin", { email, password }, false);
 
-    const flatResponse = response as unknown as Record<string, string | undefined>;
+    const flatResponse = response as unknown as Record<
+      string,
+      string | undefined
+    >;
     const token =
       response.data?.accessToken ||
       response.data?.token ||
@@ -30,11 +35,12 @@ export async function loginAction(credentials: Record<string, string>): Promise<
       flatResponse?.token;
 
     const refreshToken =
-      response.data?.refreshToken ||
-      flatResponse?.refreshToken;
+      response.data?.refreshToken || flatResponse?.refreshToken;
 
     if (!token) {
-      return { error: response.message || "Failed to retrieve authentication token." };
+      return {
+        error: response.message || "Failed to retrieve authentication token.",
+      };
     }
 
     const cookieStore = await cookies();
@@ -77,4 +83,3 @@ export async function logoutAction(): Promise<void> {
     cookieStore.delete("refreshToken");
   }
 }
-

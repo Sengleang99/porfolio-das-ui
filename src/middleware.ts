@@ -4,14 +4,16 @@ import type { NextRequest } from "next/server";
 function isTokenExpired(token: string): boolean {
   try {
     const [, payloadBase64] = token.split(".");
-    const normalizedPayload = payloadBase64.replace(/-/g, "+").replace(/_/g, "/");
+    const normalizedPayload = payloadBase64
+      .replace(/-/g, "+")
+      .replace(/_/g, "/");
     const payloadDecoded = atob(normalizedPayload);
     const payload = JSON.parse(payloadDecoded);
     if (payload && typeof payload.exp === "number") {
       // 10-second buffer to prevent race conditions
       return Date.now() >= (payload.exp - 10) * 1000;
     }
-  } catch (e) {
+  } catch {
     return true;
   }
   return false;
@@ -23,22 +25,29 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isPublicPath = pathname === "/login";
 
-  let refreshResponseCookies: { name: string; value: string; options?: any }[] = [];
+  const refreshResponseCookies: {
+    name: string;
+    value: string;
+    options?: Record<string, string | boolean | number>;
+  }[] = [];
 
   // If token exists and is expired, try to refresh it
   if (token && isTokenExpired(token)) {
     if (refreshToken) {
       console.log("Middleware: Token expired, attempting silent refresh...");
       try {
-        const refreshResponse = await fetch(`${process.env.BACKEND_API_BASE_URL}/auth/refresh`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": process.env.X_API_KEY || "",
-            "Authorization": `Bearer ${refreshToken}`,
+        const refreshResponse = await fetch(
+          `${process.env.BACKEND_API_BASE_URL}/auth/refresh`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-api-key": process.env.X_API_KEY || "",
+              Authorization: `Bearer ${refreshToken}`,
+            },
+            body: JSON.stringify({ refreshToken }),
           },
-          body: JSON.stringify({ refreshToken }),
-        });
+        );
 
         if (refreshResponse.ok) {
           const json = await refreshResponse.json();
@@ -83,11 +92,15 @@ export async function middleware(request: NextRequest) {
               request.cookies.set("refreshToken", newRefreshToken);
             }
           } else {
-            console.warn("Middleware: Refresh response missing token. Logging out.");
+            console.warn(
+              "Middleware: Refresh response missing token. Logging out.",
+            );
             token = undefined;
           }
         } else {
-          console.warn("Middleware: Refresh API returned error status. Logging out.");
+          console.warn(
+            "Middleware: Refresh API returned error status. Logging out.",
+          );
           token = undefined;
         }
       } catch (err) {
@@ -95,7 +108,9 @@ export async function middleware(request: NextRequest) {
         token = undefined;
       }
     } else {
-      console.log("Middleware: Token expired and no refresh token available. Logging out.");
+      console.log(
+        "Middleware: Token expired and no refresh token available. Logging out.",
+      );
       token = undefined;
     }
   }

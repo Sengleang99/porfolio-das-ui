@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Alert, Card, Button } from "@/components/ui";
+import { useState, useEffect } from "react";
+import { Alert, Card, Button, Spinner } from "@/components/ui";
 import type { Education } from "@/types/education";
 
 import { EducationTable } from "@/components/dashboard/education/EducationTable";
@@ -10,11 +10,15 @@ import {
   DeleteModal,
 } from "@/components/dashboard/education/EducationModals";
 import {
-  SEED_DATA,
   EMPTY_FORM,
-  generateId,
   type FormData,
 } from "@/components/dashboard/education/constants";
+import {
+  getEducations,
+  createEducation,
+  deleteEducation,
+  updateEducation,
+} from "./actions";
 
 const IconPlus = () => (
   <svg
@@ -32,7 +36,9 @@ const IconPlus = () => (
 );
 
 export default function EducationPage() {
-  const [educationList, setEducationList] = useState<Education[]>(SEED_DATA);
+  const [educationList, setEducationList] = useState<Education[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [modalMode, setModalMode] = useState<"create" | "edit" | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Education | null>(null);
@@ -41,12 +47,39 @@ export default function EducationPage() {
     Partial<Record<keyof FormData, string>>
   >({});
   const [successMsg, setSuccessMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   // ── Helpers ──────────────────────────────────────────────────────────────
-  const flash = (msg: string) => {
+  const flashSuccess = (msg: string) => {
     setSuccessMsg(msg);
-    setTimeout(() => setSuccessMsg(""), 3000);
+    setTimeout(() => setSuccessMsg(""), 4000);
   };
+
+  const flashError = (msg: string) => {
+    setErrorMsg(msg);
+    setTimeout(() => setErrorMsg(""), 5000);
+  };
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const data = await getEducations();
+        setEducationList(data);
+      } catch (err: unknown) {
+        const message =
+          err instanceof Error
+            ? err.message
+            : "Failed to load education history";
+        setError(message);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadData();
+  }, []);
 
   // ── Create ────────────────────────────────────────────────────────────────
   const openCreate = () => {
@@ -59,13 +92,12 @@ export default function EducationPage() {
   const openEdit = (item: Education) => {
     setSelectedId(item.id);
     setFormData({
-      institution: item.institution,
+      university: item.university,
       degree: item.degree,
-      fieldOfStudy: item.fieldOfStudy,
-      startDate: item.startDate,
-      endDate: item.endDate,
-      grade: item.grade ?? "",
-      description: item.description ?? "",
+      major: item.major,
+      start_year: item.start_year,
+      end_year: item.end_year,
+      descr: item.descr ?? "",
     });
     setFormErrors({});
     setModalMode("edit");
@@ -87,67 +119,78 @@ export default function EducationPage() {
   // ── Validate ──────────────────────────────────────────────────────────────
   const validate = (): boolean => {
     const errs: Partial<Record<keyof FormData, string>> = {};
-    if (!formData.institution.trim())
-      errs.institution = "Institution is required.";
+    if (!formData.university.trim())
+      errs.university = "Institution is required.";
     if (!formData.degree.trim()) errs.degree = "Degree is required.";
-    if (!formData.fieldOfStudy.trim())
-      errs.fieldOfStudy = "Field of study is required.";
-    if (!formData.startDate) errs.startDate = "Start date is required.";
-    if (!formData.endDate) {
-      errs.endDate = "End date or 'Currently studying' is required.";
+    if (!formData.major.trim()) errs.major = "Field of study is required.";
+    if (!formData.start_year) errs.start_year = "Start date is required.";
+    if (!formData.end_year) {
+      errs.end_year = "End date or 'Currently studying' is required.";
     } else if (
-      formData.endDate !== "Present" &&
-      formData.startDate &&
-      formData.endDate < formData.startDate
+      formData.end_year !== "Present" &&
+      formData.start_year &&
+      formData.end_year < formData.start_year
     ) {
-      errs.endDate = "End date must be after start date.";
+      errs.end_year = "End date must be after start date.";
     }
     setFormErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
   // ── Save ──────────────────────────────────────────────────────────────────
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validate()) return;
 
+    setIsSaving(true);
     if (modalMode === "create") {
-      setEducationList((prev) => [
-        {
-          ...formData,
-          id: generateId(),
-          grade: formData.grade || undefined,
-          description: formData.description || undefined,
-        },
-        ...prev,
-      ]);
-      flash("Education record created successfully.");
+      const result = await createEducation(formData);
+      if (result.success) {
+        if (result.data) {
+          setEducationList((prev) => [result.data!, ...prev]);
+        } else {
+          const freshData = await getEducations();
+          setEducationList(freshData);
+        }
+        flashSuccess("Education record created successfully.");
+      } else {
+        flashError(result.error || "Failed to create education record.");
+      }
+      closeModal();
+      setIsSaving(false);
     } else if (modalMode === "edit" && selectedId) {
-      setEducationList((prev) =>
-        prev.map((item) =>
-          item.id === selectedId
-            ? {
-                ...item,
-                ...formData,
-                grade: formData.grade || undefined,
-                description: formData.description || undefined,
-              }
-            : item,
-        ),
-      );
-      flash("Education record updated successfully.");
+      const result = await updateEducation(selectedId, formData);
+      if (result.success) {
+        if (result.data) {
+          setEducationList((prev) =>
+            prev.map((item) => (item.id === selectedId ? result.data! : item)),
+          );
+        } else {
+          const freshData = await getEducations();
+          setEducationList(freshData);
+        }
+        flashSuccess("Education record updated successfully.");
+      } else {
+        flashError(result.error || "Failed to update education record.");
+      }
+      closeModal();
+      setIsSaving(false);
     }
-
-    closeModal();
   };
 
   // ── Delete ────────────────────────────────────────────────────────────────
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deleteTarget) return;
-    setEducationList((prev) =>
-      prev.filter((item) => item.id !== deleteTarget.id),
-    );
+
+    const result = await deleteEducation(deleteTarget.id);
+    if (result.success) {
+      setEducationList((prev) =>
+        prev.filter((item) => item.id !== deleteTarget.id),
+      );
+      flashSuccess("Education record deleted successfully.");
+    } else {
+      flashError(result.error || "Failed to delete education record.");
+    }
     setDeleteTarget(null);
-    flash("Education record deleted.");
   };
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -167,11 +210,23 @@ export default function EducationPage() {
         </Button>
       </div>
 
-      {/* Success toast */}
+      {/* Success / Error alerts */}
       {successMsg && <Alert variant="success">{successMsg}</Alert>}
+      {errorMsg && <Alert variant="error">{errorMsg}</Alert>}
 
-      {/* Empty state or Table */}
-      {educationList.length === 0 ? (
+      {/* Loading state, Error state, Empty state or Table */}
+      {isLoading ? (
+        <Card className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="flex flex-col items-center gap-2">
+            <Spinner size="lg" />
+            <p className="text-sm font-medium text-slate-500 mt-2">
+              Loading education history...
+            </p>
+          </div>
+        </Card>
+      ) : error ? (
+        <Alert variant="error">{error}</Alert>
+      ) : educationList.length === 0 ? (
         <Card className="flex flex-col items-center justify-center py-16 text-center">
           <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center mb-4">
             <svg
@@ -209,6 +264,7 @@ export default function EducationPage() {
         onClose={closeModal}
         onSave={handleSave}
         onFieldChange={handleField}
+        isSaving={isSaving}
       />
 
       {/* Delete confirm modal */}
@@ -216,7 +272,7 @@ export default function EducationPage() {
         open={deleteTarget !== null}
         title={
           deleteTarget
-            ? `${deleteTarget.degree} in ${deleteTarget.fieldOfStudy} from ${deleteTarget.institution}`
+            ? `${deleteTarget.degree} in ${deleteTarget.major} from ${deleteTarget.university}`
             : ""
         }
         onClose={() => setDeleteTarget(null)}

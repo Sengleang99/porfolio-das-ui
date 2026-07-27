@@ -1,10 +1,9 @@
 export interface Education {
   id: string;
-  institution: string;
+  university: string;
   degree: string;
-  fieldOfStudy: string;
-  startDate: string; // e.g., "2020-09"
-  endDate: string; // e.g., "2024-06" or "Present"
-  grade?: string; // e.g., "GPA: 3.8 / 4.0" (optional)
-  description?: string; // Achievements, courses, details (optional)
+  major: string;
+  start_year: string; // e.g., "2020-09"
+  end_year: string; // e.g., "2024-06" or "Present"
+  descr?: string;
 }

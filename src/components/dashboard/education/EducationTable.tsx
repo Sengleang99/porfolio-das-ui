@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Badge } from "@/components/ui";
+import { Button } from "@/components/ui";
 import type { Education } from "@/types/education";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
@@ -126,7 +126,6 @@ export function EducationTable({
             <th className="p-4 pl-6">Institution</th>
             <th className="p-4 hidden md:table-cell">Degree & Field</th>
             <th className="p-4 hidden md:table-cell">Duration</th>
-            <th className="p-4 hidden md:table-cell">Grade</th>
             <th className="p-4 pr-6 text-right">Actions</th>
           </tr>
         </thead>
@@ -144,37 +143,30 @@ export function EducationTable({
                   </div>
                   <div className="min-w-0 flex-1">
                     <span className="font-semibold text-slate-900 block group-hover:text-indigo-600 transition-colors duration-150">
-                      {item.institution}
+                      {item.university}
                     </span>
 
                     {/* Mobile-only inline details */}
                     <div className="md:hidden mt-1 space-y-1 font-medium">
                       <span className="text-xs text-slate-700 block">
-                        {item.degree} in {item.fieldOfStudy}
+                        {item.degree} in {item.major}
                       </span>
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-slate-500 text-[11px]">
                         <span className="flex items-center gap-1">
-                          <IconCalendar /> {formatDate(item.startDate)} — {formatDate(item.endDate)}
+                          <IconCalendar /> {formatDate(item.start_year)} —{" "}
+                          {formatDate(item.end_year)}
                         </span>
-                        {item.grade && (
-                          <>
-                            <span className="text-slate-300">•</span>
-                            <Badge variant="success" size="sm">
-                              {item.grade}
-                            </Badge>
-                          </>
-                        )}
                       </div>
                     </div>
 
-                    {item.description && (
+                    {item.descr && (
                       <div className="text-xs text-slate-400 mt-2 max-w-xs md:max-w-md">
                         <p className="inline leading-relaxed whitespace-pre-wrap">
-                          {item.description.length > 80 && !expandedIds[item.id]
-                            ? `${item.description.slice(0, 80)}... `
-                            : item.description + " "}
+                          {item.descr.length > 80 && !expandedIds[item.id]
+                            ? `${item.descr.slice(0, 80)}... `
+                            : item.descr + " "}
                         </p>
-                        {item.description.length > 80 && (
+                        {item.descr.length > 80 && (
                           <button
                             type="button"
                             onClick={(e) => {
@@ -199,7 +191,7 @@ export function EducationTable({
                     {item.degree}
                   </span>
                   <span className="text-xs text-slate-500 block mt-0.5">
-                    {item.fieldOfStudy}
+                    {item.major}
                   </span>
                 </div>
               </td>
@@ -209,20 +201,9 @@ export function EducationTable({
                 <div className="flex items-center gap-1.5 text-slate-600 font-medium">
                   <IconCalendar />
                   <span className="text-xs">
-                    {formatDate(item.startDate)} — {formatDate(item.endDate)}
+                    {formatDate(item.start_year)} — {formatDate(item.end_year)}
                   </span>
                 </div>
-              </td>
-
-              {/* Grade */}
-              <td className="p-4 hidden md:table-cell">
-                {item.grade ? (
-                  <Badge variant="success" size="sm">
-                    {item.grade}
-                  </Badge>
-                ) : (
-                  <span className="text-xs text-slate-400">—</span>
-                )}
               </td>
 
               {/* Actions */}

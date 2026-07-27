@@ -121,9 +121,7 @@ export function ExperienceForm({
             ${errors.descr ? "border-red-400" : "border-slate-200"}
           `}
         />
-        {errors.descr && (
-          <p className="text-xs text-red-500">{errors.descr}</p>
-        )}
+        {errors.descr && <p className="text-xs text-red-500">{errors.descr}</p>}
       </div>
     </div>
   );

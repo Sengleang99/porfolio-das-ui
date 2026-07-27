@@ -11,11 +11,15 @@ import {
 } from "@/components/dashboard/experience/ExperienceModals";
 import {
   EMPTY_FORM,
-  generateId,
   type FormData,
 } from "@/components/dashboard/experience/constants";
 import { validateExperienceForm } from "@/components/dashboard/experience/validation";
-import { getExperiences, createExperience, deleteExperience, updateExperience } from "./actions";
+import {
+  getExperiences,
+  createExperience,
+  deleteExperience,
+  updateExperience,
+} from "./actions";
 const IconPlus = () => (
   <svg
     viewBox="0 0 24 24"
@@ -63,8 +67,10 @@ export default function ExperiencesPage() {
         setError(null);
         const data = await getExperiences();
         setExperienceList(data);
-      } catch (err: any) {
-        setError(err?.message || "Failed to load experiences");
+      } catch (err: unknown) {
+        const message =
+          err instanceof Error ? err.message : "Failed to load experiences";
+        setError(message);
       } finally {
         setIsLoading(false);
       }
@@ -195,7 +201,9 @@ export default function ExperiencesPage() {
         <Card className="flex flex-col items-center justify-center py-16 text-center">
           <div className="flex flex-col items-center gap-2">
             <Spinner size="lg" />
-            <p className="text-sm font-medium text-slate-500 mt-2">Loading experiences...</p>
+            <p className="text-sm font-medium text-slate-500 mt-2">
+              Loading experiences...
+            </p>
           </div>
         </Card>
       ) : error ? (
@@ -246,7 +254,9 @@ export default function ExperiencesPage() {
       <DeleteModal
         open={deleteTarget !== null}
         title={
-          deleteTarget ? `${deleteTarget.position} at ${deleteTarget.company}` : ""
+          deleteTarget
+            ? `${deleteTarget.position} at ${deleteTarget.company}`
+            : ""
         }
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}

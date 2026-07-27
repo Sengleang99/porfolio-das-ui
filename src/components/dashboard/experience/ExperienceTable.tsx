@@ -35,21 +35,6 @@ const IconCalendar = () => (
   </svg>
 );
 
-const IconMapPin = () => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className="w-3.5 h-3.5 text-slate-400"
-  >
-    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-    <circle cx="12" cy="10" r="3" />
-  </svg>
-);
-
 const IconEdit = () => (
   <svg
     viewBox="0 0 24 24"
@@ -181,7 +166,8 @@ export function ExperienceTable({
                       </span>
                       <span className="text-slate-300">•</span>
                       <span className="flex items-center gap-1">
-                        <IconCalendar /> {formatDate(item.from_year)} — {formatDate(item.to_year)}
+                        <IconCalendar /> {formatDate(item.from_year)} —{" "}
+                        {formatDate(item.to_year)}
                       </span>
                     </div>
 
@@ -213,9 +199,7 @@ export function ExperienceTable({
               {/* Employment Type */}
               <td className="p-4 hidden md:table-cell">
                 <Badge
-                  variant={
-                    item.status === "full-time" ? "primary" : "info"
-                  }
+                  variant={item.status === "full-time" ? "primary" : "info"}
                   size="sm"
                 >
                   {displayStatus(item.status)}
