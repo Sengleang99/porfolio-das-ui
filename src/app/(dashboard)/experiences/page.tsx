@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Alert, Card, Button } from "@/components/ui";
+import { useState, useEffect } from "react";
+import { Alert, Card, Button, Spinner } from "@/components/ui";
 import type { Experience } from "@/types/experience";
 
 import { ExperienceTable } from "@/components/dashboard/experience/ExperienceTable";
@@ -10,12 +10,12 @@ import {
   DeleteModal,
 } from "@/components/dashboard/experience/ExperienceModals";
 import {
-  SEED_DATA,
   EMPTY_FORM,
   generateId,
   type FormData,
 } from "@/components/dashboard/experience/constants";
-
+import { validateExperienceForm } from "@/components/dashboard/experience/validation";
+import { getExperiences, createExperience, deleteExperience, updateExperience } from "./actions";
 const IconPlus = () => (
   <svg
     viewBox="0 0 24 24"
@@ -32,7 +32,9 @@ const IconPlus = () => (
 );
 
 export default function ExperiencesPage() {
-  const [experienceList, setExperienceList] = useState<Experience[]>(SEED_DATA);
+  const [experienceList, setExperienceList] = useState<Experience[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [modalMode, setModalMode] = useState<"create" | "edit" | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Experience | null>(null);
@@ -41,12 +43,34 @@ export default function ExperiencesPage() {
     Partial<Record<keyof FormData, string>>
   >({});
   const [successMsg, setSuccessMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
-  // ── Helpers ──────────────────────────────────────────────────────────────
-  const flash = (msg: string) => {
+  const flashSuccess = (msg: string) => {
     setSuccessMsg(msg);
-    setTimeout(() => setSuccessMsg(""), 3000);
+    setTimeout(() => setSuccessMsg(""), 4000);
   };
+
+  const flashError = (msg: string) => {
+    setErrorMsg(msg);
+    setTimeout(() => setErrorMsg(""), 5000);
+  };
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const data = await getExperiences();
+        setExperienceList(data);
+      } catch (err: any) {
+        setError(err?.message || "Failed to load experiences");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadData();
+  }, []);
 
   // ── Create ────────────────────────────────────────────────────────────────
   const openCreate = () => {
@@ -57,15 +81,14 @@ export default function ExperiencesPage() {
 
   // ── Edit ──────────────────────────────────────────────────────────────────
   const openEdit = (item: Experience) => {
-    setSelectedId(item.id);
+    setSelectedId(item._id);
     setFormData({
       company: item.company,
-      role: item.role,
-      employmentType: item.employmentType,
-      startDate: item.startDate,
-      endDate: item.endDate,
-      location: item.location,
-      description: item.description,
+      position: item.position,
+      status: item.status,
+      from_year: item.from_year,
+      to_year: item.to_year,
+      descr: item.descr,
     });
     setFormErrors({});
     setModalMode("edit");
@@ -86,64 +109,65 @@ export default function ExperiencesPage() {
 
   // ── Validate ──────────────────────────────────────────────────────────────
   const validate = (): boolean => {
-    const errs: Partial<Record<keyof FormData, string>> = {};
-    if (!formData.company.trim()) errs.company = "Company is required.";
-    if (!formData.role.trim()) errs.role = "Role / Title is required.";
-    if (!formData.location.trim()) errs.location = "Location is required.";
-    if (!formData.startDate) errs.startDate = "Start date is required.";
-    if (!formData.endDate) {
-      errs.endDate = "End date or 'Currently work here' is required.";
-    } else if (
-      formData.endDate !== "Present" &&
-      formData.startDate &&
-      formData.endDate < formData.startDate
-    ) {
-      errs.endDate = "End date must be after start date.";
-    }
-    if (!formData.description.trim())
-      errs.description = "Description is required.";
+    const errs = validateExperienceForm(formData);
     setFormErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
   // ── Save ──────────────────────────────────────────────────────────────────
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validate()) return;
 
+    setIsSaving(true);
     if (modalMode === "create") {
-      setExperienceList((prev) => [
-        {
-          ...formData,
-          id: generateId(),
-        },
-        ...prev,
-      ]);
-      flash("Experience record created successfully.");
+      const result = await createExperience(formData);
+      if (result.success) {
+        if (result.data) {
+          setExperienceList((prev) => [result.data!, ...prev]);
+        } else {
+          const freshData = await getExperiences();
+          setExperienceList(freshData);
+        }
+        flashSuccess("Experience record created successfully.");
+      } else {
+        flashError(result.error || "Failed to create experience record.");
+      }
+      closeModal();
+      setIsSaving(false);
     } else if (modalMode === "edit" && selectedId) {
-      setExperienceList((prev) =>
-        prev.map((item) =>
-          item.id === selectedId
-            ? {
-                ...item,
-                ...formData,
-              }
-            : item,
-        ),
-      );
-      flash("Experience record updated successfully.");
+      const result = await updateExperience(selectedId, formData);
+      if (result.success) {
+        if (result.data) {
+          setExperienceList((prev) =>
+            prev.map((item) => (item._id === selectedId ? result.data! : item)),
+          );
+        } else {
+          const freshData = await getExperiences();
+          setExperienceList(freshData);
+        }
+        flashSuccess("Experience record updated successfully.");
+      } else {
+        flashError(result.error || "Failed to update experience record.");
+      }
+      closeModal();
+      setIsSaving(false);
     }
-
-    closeModal();
   };
 
   // ── Delete ────────────────────────────────────────────────────────────────
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deleteTarget) return;
-    setExperienceList((prev) =>
-      prev.filter((item) => item.id !== deleteTarget.id),
-    );
+
+    const result = await deleteExperience(deleteTarget._id);
+    if (result.success) {
+      setExperienceList((prev) =>
+        prev.filter((item) => item._id !== deleteTarget._id),
+      );
+      flashSuccess("Experience record deleted successfully.");
+    } else {
+      flashError(result.error || "Failed to delete experience record.");
+    }
     setDeleteTarget(null);
-    flash("Experience record deleted.");
   };
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -162,11 +186,21 @@ export default function ExperiencesPage() {
         </Button>
       </div>
 
-      {/* Success toast */}
+      {/* Success / Error alerts */}
       {successMsg && <Alert variant="success">{successMsg}</Alert>}
+      {errorMsg && <Alert variant="error">{errorMsg}</Alert>}
 
-      {/* Empty state or Table */}
-      {experienceList.length === 0 ? (
+      {/* Loading state, Error state, Empty state or Table */}
+      {isLoading ? (
+        <Card className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="flex flex-col items-center gap-2">
+            <Spinner size="lg" />
+            <p className="text-sm font-medium text-slate-500 mt-2">Loading experiences...</p>
+          </div>
+        </Card>
+      ) : error ? (
+        <Alert variant="error">{error}</Alert>
+      ) : experienceList.length === 0 ? (
         <Card className="flex flex-col items-center justify-center py-16 text-center">
           <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center mb-4">
             <svg
@@ -205,13 +239,14 @@ export default function ExperiencesPage() {
         onClose={closeModal}
         onSave={handleSave}
         onFieldChange={handleField}
+        isSaving={isSaving}
       />
 
       {/* Delete confirm modal */}
       <DeleteModal
         open={deleteTarget !== null}
         title={
-          deleteTarget ? `${deleteTarget.role} at ${deleteTarget.company}` : ""
+          deleteTarget ? `${deleteTarget.position} at ${deleteTarget.company}` : ""
         }
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}

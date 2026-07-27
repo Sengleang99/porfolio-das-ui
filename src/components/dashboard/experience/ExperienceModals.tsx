@@ -10,6 +10,7 @@ interface ExperienceModalProps {
   onClose: () => void;
   onSave: () => void;
   onFieldChange: (field: keyof FormData, value: string) => void;
+  isSaving?: boolean;
 }
 
 export function ExperienceModal({
@@ -19,6 +20,7 @@ export function ExperienceModal({
   onClose,
   onSave,
   onFieldChange,
+  isSaving = false,
 }: ExperienceModalProps) {
   return (
     <Modal
@@ -33,10 +35,10 @@ export function ExperienceModal({
       size="lg"
       footer={
         <>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} disabled={isSaving}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={onSave}>
+          <Button variant="primary" onClick={onSave} loading={isSaving}>
             {mode === "create" ? "Create Record" : "Save Changes"}
           </Button>
         </>

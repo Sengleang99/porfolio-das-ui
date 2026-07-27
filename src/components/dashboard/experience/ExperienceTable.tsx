@@ -114,6 +114,16 @@ function formatDate(dateStr: string): string {
   return dateStr;
 }
 
+function displayStatus(status: string): string {
+  const s = (status || "").toLowerCase();
+  if (s === "intern") return "Internship";
+  if (s === "full-time") return "Full-time";
+  if (s === "part-time") return "Part-time";
+  if (s === "contract") return "Contract";
+  if (s === "freelance") return "Freelance";
+  return status ? status.charAt(0).toUpperCase() + status.slice(1) : "";
+}
+
 // ─── Props ────────────────────────────────────────────────────────────────────
 interface ExperienceTableProps {
   items: Experience[];
@@ -141,14 +151,13 @@ export function ExperienceTable({
             <th className="p-4 pl-6">Role & Company</th>
             <th className="p-4 hidden md:table-cell">Type</th>
             <th className="p-4 hidden md:table-cell">Duration</th>
-            <th className="p-4 hidden md:table-cell">Location</th>
             <th className="p-4 pr-6 text-right">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100 text-slate-700">
           {items.map((item) => (
             <tr
-              key={item.id}
+              key={item._id}
               className="hover:bg-slate-50/50 transition-colors duration-150 group"
             >
               {/* Role & Company */}
@@ -159,7 +168,7 @@ export function ExperienceTable({
                   </div>
                   <div className="min-w-0 flex-1">
                     <span className="font-semibold text-slate-900 block group-hover:text-indigo-600 transition-colors duration-150">
-                      {item.role}
+                      {item.position}
                     </span>
                     <span className="text-xs text-slate-500 block font-medium">
                       {item.company}
@@ -168,35 +177,31 @@ export function ExperienceTable({
                     {/* Mobile-only inline details */}
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1 text-xs text-slate-500 font-medium md:hidden">
                       <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
-                        {item.employmentType}
+                        {displayStatus(item.status)}
                       </span>
                       <span className="text-slate-300">•</span>
                       <span className="flex items-center gap-1">
-                        <IconMapPin /> {item.location}
-                      </span>
-                      <span className="text-slate-300">•</span>
-                      <span className="flex items-center gap-1">
-                        <IconCalendar /> {formatDate(item.startDate)} — {formatDate(item.endDate)}
+                        <IconCalendar /> {formatDate(item.from_year)} — {formatDate(item.to_year)}
                       </span>
                     </div>
 
-                    {item.description && (
+                    {item.descr && (
                       <div className="text-xs text-slate-400 mt-2 max-w-xs md:max-w-md">
                         <p className="inline leading-relaxed whitespace-pre-wrap">
-                          {item.description.length > 80 && !expandedIds[item.id]
-                            ? `${item.description.slice(0, 80)}... `
-                            : item.description + " "}
+                          {item.descr.length > 80 && !expandedIds[item._id]
+                            ? `${item.descr.slice(0, 80)}... `
+                            : item.descr + " "}
                         </p>
-                        {item.description.length > 80 && (
+                        {item.descr.length > 80 && (
                           <button
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
-                              toggleExpand(item.id);
+                              toggleExpand(item._id);
                             }}
                             className="text-indigo-600 hover:text-indigo-700 font-semibold inline hover:underline ml-1 cursor-pointer focus:outline-none"
                           >
-                            {expandedIds[item.id] ? "Show less" : "Read more"}
+                            {expandedIds[item._id] ? "Show less" : "Read more"}
                           </button>
                         )}
                       </div>
@@ -209,11 +214,11 @@ export function ExperienceTable({
               <td className="p-4 hidden md:table-cell">
                 <Badge
                   variant={
-                    item.employmentType === "Full-time" ? "primary" : "info"
+                    item.status === "full-time" ? "primary" : "info"
                   }
                   size="sm"
                 >
-                  {item.employmentType}
+                  {displayStatus(item.status)}
                 </Badge>
               </td>
 
@@ -222,16 +227,8 @@ export function ExperienceTable({
                 <div className="flex items-center gap-1.5 text-slate-600 font-medium">
                   <IconCalendar />
                   <span className="text-xs">
-                    {formatDate(item.startDate)} — {formatDate(item.endDate)}
+                    {formatDate(item.from_year)} — {formatDate(item.to_year)}
                   </span>
-                </div>
-              </td>
-
-              {/* Location */}
-              <td className="p-4 hidden md:table-cell">
-                <div className="flex items-center gap-1.5 text-slate-600 font-medium">
-                  <IconMapPin />
-                  <span className="text-xs">{item.location}</span>
                 </div>
               </td>
 

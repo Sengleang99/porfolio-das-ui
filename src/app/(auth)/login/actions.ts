@@ -16,7 +16,7 @@ export async function loginAction(credentials: Record<string, string>): Promise<
   }
 
   try {
-    const response = await poster<{ accessToken?: string; token?: string }>(
+    const response = await poster<{ accessToken?: string; token?: string; refreshToken?: string }>(
       "/auth/signin",
       { email, password },
       false
@@ -28,6 +28,10 @@ export async function loginAction(credentials: Record<string, string>): Promise<
       response.data?.token ||
       flatResponse?.accessToken ||
       flatResponse?.token;
+
+    const refreshToken =
+      response.data?.refreshToken ||
+      flatResponse?.refreshToken;
 
     if (!token) {
       return { error: response.message || "Failed to retrieve authentication token." };
@@ -41,6 +45,16 @@ export async function loginAction(credentials: Record<string, string>): Promise<
       path: "/",
       sameSite: "lax",
     });
+
+    if (refreshToken) {
+      cookieStore.set("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 60 * 60 * 24 * 7, // 7 days
+        path: "/",
+        sameSite: "lax",
+      });
+    }
 
     return { success: true };
   } catch (err: unknown) {
@@ -60,6 +74,7 @@ export async function logoutAction(): Promise<void> {
   } finally {
     const cookieStore = await cookies();
     cookieStore.delete("token");
+    cookieStore.delete("refreshToken");
   }
 }
 
