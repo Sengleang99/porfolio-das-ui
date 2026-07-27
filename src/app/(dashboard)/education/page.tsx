@@ -11,14 +11,10 @@ import {
 } from "@/components/dashboard/education/EducationModals";
 import {
   EMPTY_FORM,
+  generateId,
   type FormData,
 } from "@/components/dashboard/education/constants";
-import {
-  getEducations,
-  createEducation,
-  deleteEducation,
-  updateEducation,
-} from "./actions";
+import { getEducations, createEducation, deleteEducation, updateEducation } from "./actions";
 
 const IconPlus = () => (
   <svg
@@ -68,12 +64,8 @@ export default function EducationPage() {
         setError(null);
         const data = await getEducations();
         setEducationList(data);
-      } catch (err: unknown) {
-        const message =
-          err instanceof Error
-            ? err.message
-            : "Failed to load education history";
-        setError(message);
+      } catch (err: any) {
+        setError(err?.message || "Failed to load education history");
       } finally {
         setIsLoading(false);
       }
@@ -122,7 +114,8 @@ export default function EducationPage() {
     if (!formData.university.trim())
       errs.university = "Institution is required.";
     if (!formData.degree.trim()) errs.degree = "Degree is required.";
-    if (!formData.major.trim()) errs.major = "Field of study is required.";
+    if (!formData.major.trim())
+      errs.major = "Field of study is required.";
     if (!formData.start_year) errs.start_year = "Start date is required.";
     if (!formData.end_year) {
       errs.end_year = "End date or 'Currently studying' is required.";
@@ -219,9 +212,7 @@ export default function EducationPage() {
         <Card className="flex flex-col items-center justify-center py-16 text-center">
           <div className="flex flex-col items-center gap-2">
             <Spinner size="lg" />
-            <p className="text-sm font-medium text-slate-500 mt-2">
-              Loading education history...
-            </p>
+            <p className="text-sm font-medium text-slate-500 mt-2">Loading education history...</p>
           </div>
         </Card>
       ) : error ? (
