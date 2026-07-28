@@ -31,7 +31,8 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         {mainNavItems.map((item) => {
           const isActive =
             pathname === item.href || pathname.startsWith(item.href + "/");
-          const badgeCount = item.href === "/messages" ? unreadCount : (item.badge ?? 0);
+          const badgeCount =
+            item.href === "/messages" ? unreadCount : (item.badge ?? 0);
 
           return (
             <Link

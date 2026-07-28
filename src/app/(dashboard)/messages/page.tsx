@@ -325,11 +325,7 @@ export default function MessagesPage() {
       {/* Delete Confirmation Modal */}
       <DeleteModal
         open={deleteTarget !== null}
-        title={
-          deleteTarget
-            ? `Delete message from ${deleteTarget.name}`
-            : ""
-        }
+        title={deleteTarget ? `Delete message from ${deleteTarget.name}` : ""}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDeleteMessage}
       />

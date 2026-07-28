@@ -72,13 +72,16 @@ export function MultiSelect({
 
   // Filter options based on search query
   const filteredOptions = options.filter((option) =>
-    option.toLowerCase().includes(searchQuery.toLowerCase())
+    option.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
     <div className="space-y-1.5" ref={containerRef}>
       {label && (
-        <label htmlFor={id} className="block text-sm font-medium text-slate-700">
+        <label
+          htmlFor={id}
+          className="block text-sm font-medium text-slate-700"
+        >
           {label}
         </label>
       )}

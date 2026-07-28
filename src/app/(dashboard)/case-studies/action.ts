@@ -88,9 +88,7 @@ export async function deleteCaseStudy(id: string): Promise<ActionResult<void>> {
   } catch (error: unknown) {
     console.error("Error in deleteCaseStudy server action:", error);
     const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to delete case study.";
+      error instanceof Error ? error.message : "Failed to delete case study.";
     return {
       success: false,
       error: message,
@@ -138,9 +136,7 @@ export async function updateCaseStudy(
   } catch (error: unknown) {
     console.error("Error in updateCaseStudy server action:", error);
     const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to update case study.";
+      error instanceof Error ? error.message : "Failed to update case study.";
     return {
       success: false,
       error: message,

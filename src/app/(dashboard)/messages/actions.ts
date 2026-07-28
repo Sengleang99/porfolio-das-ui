@@ -112,7 +112,8 @@ export async function getUnreadCount(): Promise<number> {
       return 0;
     }
 
-    return list.filter((item) => item.status === "unread" || !item.status).length;
+    return list.filter((item) => item.status === "unread" || !item.status)
+      .length;
   } catch (error) {
     console.error("Error in getUnreadCount server action:", error);
     return 0;
@@ -124,7 +125,9 @@ export async function replyToMessage(
   messageBody: string,
 ): Promise<ActionResult<Message>> {
   try {
-    const response = await poster<any>(`/contacts/${id}/reply`, { message: messageBody });
+    const response = await poster<any>(`/contacts/${id}/reply`, {
+      message: messageBody,
+    });
     const rawMessage = response?.data?.data || response?.data || response;
 
     if (rawMessage && (rawMessage._id || rawMessage.id)) {

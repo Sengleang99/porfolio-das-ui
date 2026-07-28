@@ -121,7 +121,10 @@ export function MessageViewModal({
             </h4>
             <div className="space-y-3 max-h-48 overflow-y-auto pr-1">
               {message.replies.map((reply, index) => (
-                <div key={index} className="bg-indigo-50/50 border border-indigo-100/50 p-3 rounded-xl space-y-1">
+                <div
+                  key={index}
+                  className="bg-indigo-50/50 border border-indigo-100/50 p-3 rounded-xl space-y-1"
+                >
                   <div className="flex items-center justify-between text-xs text-indigo-600 font-semibold">
                     <span>You (Admin)</span>
                     <span className="text-[10px] text-slate-400 font-normal">

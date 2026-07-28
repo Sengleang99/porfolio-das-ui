@@ -8,7 +8,9 @@ interface MessagesContextType {
   triggerRefresh: () => Promise<void>;
 }
 
-const MessagesContext = createContext<MessagesContextType | undefined>(undefined);
+const MessagesContext = createContext<MessagesContextType | undefined>(
+  undefined,
+);
 
 export function MessagesProvider({ children }: { children: React.ReactNode }) {
   const [unreadCount, setUnreadCount] = useState(0);
@@ -42,7 +44,11 @@ export function MessagesProvider({ children }: { children: React.ReactNode }) {
       if (eventSource.readyState === EventSource.CONNECTING) {
         console.log("SSE proxy disconnected. Reconnecting automatically...");
       } else {
-        console.warn("SSE stream connection closed or failed (state: " + eventSource.readyState + "). Reconnecting...");
+        console.warn(
+          "SSE stream connection closed or failed (state: " +
+            eventSource.readyState +
+            "). Reconnecting...",
+        );
       }
     };
 

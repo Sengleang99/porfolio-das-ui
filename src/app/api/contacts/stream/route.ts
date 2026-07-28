@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   const backendUrl = `${process.env.BACKEND_API_BASE_URL}/contacts/stream`;
 
   const headers: Record<string, string> = {
-    "Accept": "text/event-stream",
+    Accept: "text/event-stream",
   };
 
   if (process.env.X_API_KEY) {
@@ -35,7 +35,9 @@ export async function GET(request: NextRequest) {
           controller.enqueue(value);
         }
       } catch (error) {
-        console.log("SSE proxy stream closed by remote server (keep-alive timeout). Client will reconnect automatically.");
+        console.log(
+          "SSE proxy stream closed by remote server (keep-alive timeout). Client will reconnect automatically.",
+        );
         try {
           controller.close();
         } catch {
@@ -54,7 +56,7 @@ export async function GET(request: NextRequest) {
     headers: {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache, no-transform",
-      "Connection": "keep-alive",
+      Connection: "keep-alive",
     },
   });
 }
