@@ -153,8 +153,8 @@ const fetcher = async <T>(
     await handleResponseError(response);
   }
 
-  const json: ApiResponse<T> = await response.json();
-  return json.data;
+  const json = await response.json();
+  return (json && typeof json === "object" && "data" in json && json.data !== undefined ? json.data : json) as T;
 };
 
 const poster = async <T>(

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { getPageInfo } from "@/lib/routes";
 import { useSidebar } from "@/context/SidebarContext";
-import { logoutAction } from "@/app/(auth)/login/actions";
+import { logoutAction, getCurrentUserAction, type UserProfile } from "@/app/(auth)/login/actions";
 import { useMessages } from "@/context/MessagesContext";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
@@ -153,6 +153,23 @@ export default function Navbar() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
+  const [user, setUser] = useState<UserProfile | null>(null);
+
+  useEffect(() => {
+    getCurrentUserAction().then((data) => {
+      if (data) setUser(data);
+    });
+  }, []);
+
+  const userName = user?.name || (user?.email ? user.email.split("@")[0] : "User");
+  const userEmail = user?.email || "";
+  const avatarInitials = userName
+    .split(" ")
+    .map((n) => n[0])
+    .filter(Boolean)
+    .join("")
+    .slice(0, 2)
+    .toUpperCase() || "U";
 
   const handleSignOut = async () => {
     await logoutAction();
@@ -163,7 +180,6 @@ export default function Navbar() {
   const profileRef = useRef<HTMLDivElement>(null);
 
   const pageInfo = getPageInfo(pathname);
-  const mockNotifUnreadCount = notifications.filter((n) => n.unread).length;
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -220,10 +236,9 @@ export default function Navbar() {
         className={`
           hidden md:flex items-center gap-2 px-3 py-2 rounded-xl border
           transition-all duration-200 bg-slate-50
-          ${
-            searchFocused
-              ? "border-indigo-300 shadow-[0_0_0_3px_rgba(99,102,241,0.12)] bg-white w-64"
-              : "border-slate-200 w-48 hover:border-slate-300"
+          ${searchFocused
+            ? "border-indigo-300 shadow-[0_0_0_3px_rgba(99,102,241,0.12)] bg-white w-64"
+            : "border-slate-200 w-48 hover:border-slate-300"
           }
         `}
       >
@@ -257,78 +272,6 @@ export default function Navbar() {
           )}
         </Link>
 
-        {/* Notifications dropdown */}
-        <div ref={notifRef} className="relative">
-          <button
-            id="navbar-notifications-btn"
-            onClick={() => {
-              setShowNotifications((v) => !v);
-              setShowProfile(false);
-            }}
-            className={`relative flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-200 ${
-              showNotifications
-                ? "bg-indigo-50 text-indigo-600"
-                : "text-slate-500 hover:text-indigo-600 hover:bg-indigo-50"
-            }`}
-          >
-            <IconBell />
-            {mockNotifUnreadCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 min-w-[16px] h-4 px-0.5 rounded-full bg-indigo-600 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white">
-                {mockNotifUnreadCount}
-              </span>
-            )}
-          </button>
-
-          {/* Notification panel */}
-          {showNotifications && (
-            <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.12)] border border-slate-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-                <span className="text-sm font-semibold text-slate-800">
-                  Notifications
-                </span>
-                <span className="text-xs font-medium text-indigo-600 cursor-pointer hover:underline">
-                  Mark all read
-                </span>
-              </div>
-              <div className="max-h-72 overflow-y-auto">
-                {notifications.map((n) => (
-                  <div
-                    key={n.id}
-                    className={`flex items-start gap-3 px-4 py-3 hover:bg-slate-50 cursor-pointer transition-colors duration-150 ${
-                      n.unread ? "bg-indigo-50/40" : ""
-                    }`}
-                  >
-                    <div
-                      className={`w-8 h-8 rounded-xl bg-gradient-to-br ${n.color} flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm`}
-                    >
-                      {n.avatar}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-slate-700 leading-snug">
-                        <span className="font-semibold">{n.name}</span>{" "}
-                        {n.action}
-                      </p>
-                      <p className="text-xs text-slate-400 mt-0.5">{n.time}</p>
-                    </div>
-                    {n.unread && (
-                      <span className="w-2 h-2 rounded-full bg-indigo-500 mt-1 shrink-0" />
-                    )}
-                  </div>
-                ))}
-              </div>
-              <div className="px-4 py-3 border-t border-slate-100 text-center">
-                <Link
-                  href="/notifications"
-                  className="text-xs font-medium text-indigo-600 hover:underline"
-                  onClick={() => setShowNotifications(false)}
-                >
-                  View all notifications →
-                </Link>
-              </div>
-            </div>
-          )}
-        </div>
-
         {/* Vertical divider */}
         <div className="w-px h-6 bg-slate-200 mx-1" />
 
@@ -344,22 +287,21 @@ export default function Navbar() {
           >
             <div className="relative">
               <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-400 flex items-center justify-center text-white text-xs font-bold shadow-sm">
-                SL
+                {avatarInitials}
               </div>
               <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-white" />
             </div>
             <div className="hidden sm:flex flex-col items-start">
               <span className="text-xs font-semibold text-slate-800 leading-tight">
-                Sengleang
+                {userName}
               </span>
-              <span className="text-[10px] text-slate-400 leading-tight">
-                Developer
+              <span className="text-[10px] text-slate-400 leading-tight truncate max-w-[120px]">
+                {userEmail || "Developer"}
               </span>
             </div>
             <span
-              className={`text-slate-400 group-hover:text-slate-600 transition-all duration-200 ${
-                showProfile ? "rotate-180" : ""
-              }`}
+              className={`text-slate-400 group-hover:text-slate-600 transition-all duration-200 ${showProfile ? "rotate-180" : ""
+                }`}
             >
               <IconChevronDown />
             </span>
@@ -371,13 +313,15 @@ export default function Navbar() {
               {/* User info header */}
               <div className="px-4 py-3 border-b border-slate-100 bg-gradient-to-br from-indigo-50/80 to-blue-50/40">
                 <p className="text-sm font-semibold text-slate-800">
-                  Sengleang
+                  {userName}
                 </p>
-                <p className="text-xs text-slate-500">sengleang@dev.io</p>
+                {userEmail && (
+                  <p className="text-xs text-slate-500 truncate">{userEmail}</p>
+                )}
               </div>
 
               {/* Menu items */}
-              <div className="py-1.5 px-2">
+              {/* <div className="py-1.5 px-2">
                 {[
                   { label: "My Profile", icon: <IconUser />, href: "/profile" },
                   {
@@ -396,7 +340,7 @@ export default function Navbar() {
                     {item.label}
                   </Link>
                 ))}
-              </div>
+              </div> */}
 
               <div className="border-t border-slate-100 py-1.5 px-2">
                 <button
