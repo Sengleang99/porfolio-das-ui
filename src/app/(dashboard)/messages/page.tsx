@@ -152,7 +152,7 @@ export default function MessagesPage() {
       {successMsg && <Alert variant="success">{successMsg}</Alert>}
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         <Card className="flex items-center gap-4 p-4 hover:shadow-md transition-shadow duration-200">
           <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
             <svg
