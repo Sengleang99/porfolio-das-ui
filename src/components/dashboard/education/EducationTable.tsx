@@ -120,12 +120,12 @@ export function EducationTable({
 
   return (
     <div className="w-full overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <table className="w-full text-left border-collapse text-sm">
+      <table className="w-full min-w-[600px] text-left border-collapse text-sm">
         <thead>
           <tr className="border-b border-slate-100 bg-slate-50/75 text-slate-500 font-semibold">
             <th className="p-4 pl-6">Institution</th>
-            <th className="p-4 hidden md:table-cell">Degree & Field</th>
-            <th className="p-4 hidden md:table-cell">Duration</th>
+            <th className="p-4 whitespace-nowrap">Degree & Field</th>
+            <th className="p-4 whitespace-nowrap">Duration</th>
             <th className="p-4 pr-6 text-right">Actions</th>
           </tr>
         </thead>
@@ -145,19 +145,6 @@ export function EducationTable({
                     <span className="font-semibold text-slate-900 block group-hover:text-indigo-600 transition-colors duration-150">
                       {item.university}
                     </span>
-
-                    {/* Mobile-only inline details */}
-                    <div className="md:hidden mt-1 space-y-1 font-medium">
-                      <span className="text-xs text-slate-700 block">
-                        {item.degree} in {item.major}
-                      </span>
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-slate-500 text-[11px]">
-                        <span className="flex items-center gap-1">
-                          <IconCalendar /> {formatDate(item.start_year)} —{" "}
-                          {formatDate(item.end_year)}
-                        </span>
-                      </div>
-                    </div>
 
                     {item.descr && (
                       <div className="text-xs text-slate-400 mt-2 max-w-xs md:max-w-md">
@@ -185,7 +172,7 @@ export function EducationTable({
               </td>
 
               {/* Degree & Field */}
-              <td className="p-4 hidden md:table-cell">
+              <td className="p-4 whitespace-nowrap">
                 <div>
                   <span className="font-medium text-slate-800 block">
                     {item.degree}
@@ -197,7 +184,7 @@ export function EducationTable({
               </td>
 
               {/* Duration */}
-              <td className="p-4 hidden md:table-cell">
+              <td className="p-4 whitespace-nowrap">
                 <div className="flex items-center gap-1.5 text-slate-600 font-medium">
                   <IconCalendar />
                   <span className="text-xs">

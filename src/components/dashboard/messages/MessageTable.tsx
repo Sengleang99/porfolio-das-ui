@@ -86,7 +86,7 @@ interface MessageTableProps {
 export function MessageTable({ items, onView, onDelete }: MessageTableProps) {
   return (
     <div className="w-full overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <table className="w-full text-left border-collapse text-sm">
+      <table className="w-full min-w-[640px] text-left border-collapse text-sm">
         <thead>
           <tr className="border-b border-slate-100 bg-slate-50/75 text-slate-500 font-semibold">
             <th className="p-4 pl-6 w-[220px]">Sender</th>

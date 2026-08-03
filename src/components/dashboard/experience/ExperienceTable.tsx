@@ -130,12 +130,12 @@ export function ExperienceTable({
 
   return (
     <div className="w-full overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <table className="w-full text-left border-collapse text-sm">
+      <table className="w-full min-w-[640px] text-left border-collapse text-sm">
         <thead>
           <tr className="border-b border-slate-100 bg-slate-50/75 text-slate-500 font-semibold">
             <th className="p-4 pl-6">Role & Company</th>
-            <th className="p-4 hidden md:table-cell">Type</th>
-            <th className="p-4 hidden md:table-cell">Duration</th>
+            <th className="p-4 whitespace-nowrap">Type</th>
+            <th className="p-4 whitespace-nowrap">Duration</th>
             <th className="p-4 pr-6 text-right">Actions</th>
           </tr>
         </thead>
@@ -158,18 +158,6 @@ export function ExperienceTable({
                     <span className="text-xs text-slate-500 block font-medium">
                       {item.company}
                     </span>
-
-                    {/* Mobile-only inline details */}
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1 text-xs text-slate-500 font-medium md:hidden">
-                      <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
-                        {displayStatus(item.status)}
-                      </span>
-                      <span className="text-slate-300">•</span>
-                      <span className="flex items-center gap-1">
-                        <IconCalendar /> {formatDate(item.from_year)} —{" "}
-                        {formatDate(item.to_year)}
-                      </span>
-                    </div>
 
                     {item.descr && (
                       <div className="text-xs text-slate-400 mt-2 max-w-xs md:max-w-md">
@@ -197,7 +185,7 @@ export function ExperienceTable({
               </td>
 
               {/* Employment Type */}
-              <td className="p-4 hidden md:table-cell">
+              <td className="p-4 whitespace-nowrap">
                 <Badge
                   variant={item.status === "full-time" ? "primary" : "info"}
                   size="sm"
@@ -207,7 +195,7 @@ export function ExperienceTable({
               </td>
 
               {/* Duration */}
-              <td className="p-4 hidden md:table-cell">
+              <td className="p-4 whitespace-nowrap">
                 <div className="flex items-center gap-1.5 text-slate-600 font-medium">
                   <IconCalendar />
                   <span className="text-xs">
